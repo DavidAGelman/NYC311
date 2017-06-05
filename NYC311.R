@@ -33,8 +33,8 @@ library(scales)
 #load in the data
 #first data source, NYC 311 calls in 2013
 #https://data.cityofnewyork.us/Social-Services/311-Service-Requests-2013/e8jc-rs3b
-complaint.data<-fread("311_Service_Requests_2013.csv", sep=",")
-manhattan.complaint<-subset(complaint.data,complaint.data$Borough=="MANHATTAN")
+complaint.data=fread("311_Service_Requests_2013.csv", sep=",")
+manhattan.complaint=subset(complaint.data,complaint.data$Borough=="MANHATTAN")
 
 #need to replace spaces with "_" in column names
 manhattan.complaint=as.data.table(manhattan.complaint)
@@ -42,7 +42,7 @@ colnames(manhattan.complaint)=gsub('([[:punct:]])|\\s+','_',colnames(manhattan.c
 
 #now create a day count
 manhattan.complaint=manhattan.complaint[order(Created_Date),]
-manhattan.complaint$open_date<-stri_sub(manhattan.complaint$Created_Date,1,10)
+manhattan.complaint$open_date=stri_sub(manhattan.complaint$Created_Date,1,10)
 manhattan.complaint$open_date=as.Date(manhattan.complaint$open_date, format="%m/%d/%Y")
 manhattan.complaint$dayid=difftime(as.POSIXlt(manhattan.complaint$open_date),
                                  as.POSIXlt(as.Date("01/01/2013",format="%m/%d/%Y")),
@@ -52,7 +52,7 @@ manhattan.complaint$dayid=difftime(as.POSIXlt(manhattan.complaint$open_date),
 #from NOAA National Centers for Envrionmental Information
 #https://www.ncdc.noaa.gov/cdo-web/datasets#GHCND
 #obtained 10/27/2016
-weather.data<-read.csv("NOAA_NYC_2013Data.csv")
+weather.data=read.csv("NOAA_NYC_2013Data.csv")
 
 #now create a day count
 weather.data$day=as.Date(as.character(weather.data$DATE),format="%Y %m %d")
@@ -63,8 +63,8 @@ weather.data$dayid=difftime(as.POSIXlt(weather.data$day),
 #now load in the market data
 #from Quandl's native R package
 #market.data.nasdaq<-Quandl("NASDAQOMX/NQUSA", start_date="2013-01-01", end_date="2013-12-31")
-market.data.dow<-Quandl("YAHOO/INDEX_DJI", start_date="2013-01-01", end_date="2013-12-31")
-market.data.dow$change<-(market.data.dow$Close)-(market.data.dow$Open)
+market.data.dow=Quandl("YAHOO/INDEX_DJI", start_date="2013-01-01", end_date="2013-12-31")
+market.data.dow$change=(market.data.dow$Close)-(market.data.dow$Open)
 market.data.dow$percent_change=((market.data.dow$change)/(market.data.dow$Open))*100
 
 #now create a day count
@@ -77,7 +77,7 @@ market.data.dow$dayid=difftime(as.POSIXlt(market.data.dow$Date,format="%Y-%m-%d"
 data.days=unique(market.data.dow$dayid)
 
 #what are the days after the market is open?
-data.days.obs<-data.days[]+1
+data.days.obs=data.days[]+1
 
 #------------------------------------------
 #we're only interesed in days the market is open, so let's subset weather and 311 calls and then merge
@@ -94,10 +94,10 @@ weather=subset(weather.data,weather.data$inday==1)
 #since a for loop will take a long time over 382,522 obersvations and we're looking at days
   #as the unit of analysis, lets go ahead and do that first
 manhattan.complaint$dayid=as.numeric(manhattan.complaint$dayid)
-complaints<-count(manhattan.complaint,c(manhattan.complaint$dayid))
+complaints=count(manhattan.complaint,c(manhattan.complaint$dayid))
 
-colnames(complaints)[1]<-"dayid"
-colnames(complaints)[2]<-"count"
+colnames(complaints)[1]="dayid"
+colnames(complaints)[2]="count"
 complaints$inday="NA"
 for (i in 1:length(complaints$dayid)){
   complaints$inday[i]=ifelse(complaints$dayid[i] %in% data.days,1,0)
@@ -124,7 +124,7 @@ summary(data$count)
 
 #now run a simple linear model
 options(scipen = 999)
-model1<-lm(count~change+
+model1=lm(count~change+
              Volume+
              TMIN+
              PRCP,
@@ -138,7 +138,7 @@ bptest(model1)
 coeftest(model1, vcoc=hccm(model1))
 
 #still insignificant so try RSEs
-model1robust<-lmRob(count~change+
+model1robust=lmRob(count~change+
                   Volume+
                   TMIN+
                   PRCP,
@@ -149,7 +149,7 @@ print(summary(model1robust))
 jarque.bera.test(model1robust$residuals)
 
 #autocorrelation?
-res<-residuals(model1robust)
+res=residuals(model1robust)
 par(mfrow=c(1,2))
 plot(res,ylab="Residuals",xlab="DayID")
 acf(res,main="ACF of Residuals")
@@ -157,13 +157,13 @@ acf(res,main="ACF of Residuals")
 #looks like some definite auto-correlation which is unsurprising given using market data
 
 #now try a fGLS with Cochrane-Orcutt
-model1.fgls<-cochrane.orcutt(model1)
+model1.fgls=cochrane.orcutt(model1)
 print(summary(model1.fgls))
 print(model1.fgls)
 
 
 #still insignificant in OLS, now turning to MLE (Binomial)
-model2<-glm.nb(count~change+
+model2=glm.nb(count~change+
               Volume+
               TMIN+
               PRCP,
@@ -208,7 +208,7 @@ grid.arrange(counts.plot, change.plot, temp.plot,ncol=1,top="Plotting the Raw Da
 
 #------------------------------------------
 #now lets look at types of complaints by day
-man.complaint.data<-as.data.table(cbind(manhattan.complaint$Unique_Key,
+man.complaint.data=as.data.table(cbind(manhattan.complaint$Unique_Key,
                                   manhattan.complaint$Complaint_Type,
                                   as.character(manhattan.complaint$open_date),
                                   manhattan.complaint$dayid))
@@ -221,31 +221,31 @@ types=unique(man.complaint.data$complaint_type)
 length(unique(man.complaint.data$complaint_type))
 
 #how many of each on each day?
-man.complaint.data.ftw<-man.complaint.data
+man.complaint.data.ftw=man.complaint.data
 man.complaint.data.ftw$complaint_type=as.factor(man.complaint.data.ftw$complaint_type)
-man.complaint.data.ftw<-as.data.frame(man.complaint.data.ftw)
+man.complaint.data.ftw=as.data.frame(man.complaint.data.ftw)
 
-man.topcomplaints<-count(man.complaint.data.ftw,complaint_type)
-man.topcomplaints<-as.data.table(man.topcomplaints)
-man.topcomplaints<-man.topcomplaints[order(-n),]
+man.topcomplaints=count(man.complaint.data.ftw,complaint_type)
+man.topcomplaints=as.data.table(man.topcomplaints)
+man.topcomplaints=man.topcomplaints[order(-n),]
 
 #let's pick a few complaint types of interest, with an empasis on some more frequent ones:
 
 man.complaints=subset(man.complaint.data.ftw,
                       man.complaint.data.ftw$complaint_type=="HEATING"|man.complaint.data.ftw$complaint_type=="Noise - Residential"|man.complaint.data.ftw$complaint_type=="Noise-Commercial"|man.complaint.data.ftw$complaint_type=="Broken Muni Meter"|man.complaint.data.ftw$complaint_type=="Taxi Complaint"|man.complaint.data.ftw$complaint_type=="Rodent"|man.complaint.data.ftw$complaint_type=="Recycling Enforcement"|man.complaint.data.ftw$complaint_type=="Homeless Encampment")
-man.comp.counts<-count_(man.complaints,vars=c("open_date","complaint_type"))
+man.comp.counts=count_(man.complaints,vars=c("open_date","complaint_type"))
 
 #okay, now we have several complain type counts per day, lets plot it
-man.comp.counts.plotdata<-man.comp.counts
-man.comp.counts$open_date<-as.Date(man.comp.counts.plotdata$open_date)
+man.comp.counts.plotdata=man.comp.counts
+man.comp.counts$open_date=as.Date(man.comp.counts.plotdata$open_date)
 
-complaint_type.plot<-ggplot(man.comp.counts,
+complaint_type.plot=ggplot(man.comp.counts,
                             aes(x=open_date,y=n,colour=complaint_type,group=complaint_type))+
   geom_line()+theme_bw()
 complaint_type.plot<-complaint_type.plot + scale_x_date(limits = as.Date(c("2013-01-01", "2013-12-31")),
                      breaks="1 month",
                   labels=date_format("%b"))
-complaint_type.plot<-complaint_type.plot+ theme(axis.text.x=element_text(angle=90,hjust=1))+
+complaint_type.plot=complaint_type.plot+ theme(axis.text.x=element_text(angle=90,hjust=1))+
   labs(main="311 Complaint Types Across 2013",x="",y="Number of 311 Calls")+
   scale_colour_discrete(name="Complaint Types")+
   scale_y_continuous(expand=c(0,0))
