@@ -1,10 +1,10 @@
-###########################################
+#------------------------------------------
 #NYC 311
 #
 #by David A. Gelman
 #Originally coded on 10/27/2016
-###########################################
-###########################################
+#------------------------------------------
+#------------------------------------------
 
 rm(list=ls())
 
@@ -23,13 +23,13 @@ library(orcutt)
 library(ggplot2)
 library(scales)
 
-############################################################
+#------------------------------------------
 
 #set working directory
 #setwd("~NYC311")
 
-############################################################
-############################################################
+#------------------------------------------
+#------------------------------------------
 #load in the data
 #first data source, NYC 311 calls in 2013
 #https://data.cityofnewyork.us/Social-Services/311-Service-Requests-2013/e8jc-rs3b
@@ -72,14 +72,14 @@ market.data.dow$dayid=difftime(as.POSIXlt(market.data.dow$Date,format="%Y-%m-%d"
                                as.POSIXlt(as.Date("01/01/2013",format="%m/%d/%Y")),
                                units="days")
 
-############################################################
+#------------------------------------------
 #what are the days when the market is open?
 data.days=unique(market.data.dow$dayid)
 
 #what are the days after the market is open?
 data.days.obs<-data.days[]+1
 
-############################################################
+#------------------------------------------
 #we're only interesed in days the market is open, so let's subset weather and 311 calls and then merge
 #all 3 data sources together
 
@@ -109,13 +109,14 @@ complaints.ftm<-subset(complaints,complaints$inday==1)
 market.data.dow=market.data.dow[order(-dayid),]
 
 data=cbind(weather, market.data.dow,complaints.ftm)
-############################################################
-############################################################
-############################################################
+
+#------------------------------------------
+#------------------------------------------
+#------------------------------------------
 #now data is done and we can look at our 252 observation days
-############################################################
-############################################################
-############################################################
+#------------------------------------------
+#------------------------------------------
+#------------------------------------------
 
 #lets start by quickly looking at the dependent variable:
 summary(data$count)
@@ -162,8 +163,6 @@ print(model1.fgls)
 
 
 #still insignificant in OLS, now turning to MLE (Binomial)
-
-
 model2<-glm.nb(count~change+
               Volume+
               TMIN+
@@ -171,13 +170,12 @@ model2<-glm.nb(count~change+
             data=data)
 print(summary(model2))
 
-############################################################
-############################################################
+#------------------------------------------
+#------------------------------------------
 #write out the data so I know how big it is and all the data work is saved:
 write.csv(data,"NYC311.csv")
 
-############################################################
-############################################################
+#------------------------------------------
 #now let's make some plots
 
 #one plot has all three things, counts, close, and TMIN across time
@@ -208,8 +206,7 @@ temp.plot
 #now put the three together
 grid.arrange(counts.plot, change.plot, temp.plot,ncol=1,top="Plotting the Raw Data Across 2013")
 
-############################################################
-############################################################
+#------------------------------------------
 #now lets look at types of complaints by day
 man.complaint.data<-as.data.table(cbind(manhattan.complaint$Unique_Key,
                                   manhattan.complaint$Complaint_Type,
